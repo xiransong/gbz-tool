@@ -1,0 +1,19 @@
+# Build artifacts
+build/
+*.o
+*.a
+*.so
+
+# Temporary files
+*.swp
+*~
+
+# Executables (if not in build/)
+gbztool
+
+# Dependency folder (uncomment if you don't want to commit libraries)
+#dependency/
+
+# Miscellaneous
+*.log
+core
