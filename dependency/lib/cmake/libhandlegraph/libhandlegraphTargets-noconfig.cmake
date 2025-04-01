@@ -12,8 +12,8 @@ set_target_properties(libhandlegraph::handlegraph_shared PROPERTIES
   IMPORTED_SONAME_NOCONFIG "libhandlegraph.so"
   )
 
-list(APPEND _cmake_import_check_targets libhandlegraph::handlegraph_shared )
-list(APPEND _cmake_import_check_files_for_libhandlegraph::handlegraph_shared "${_IMPORT_PREFIX}/lib/libhandlegraph.so" )
+list(APPEND _IMPORT_CHECK_TARGETS libhandlegraph::handlegraph_shared )
+list(APPEND _IMPORT_CHECK_FILES_FOR_libhandlegraph::handlegraph_shared "${_IMPORT_PREFIX}/lib/libhandlegraph.so" )
 
 # Import target "libhandlegraph::handlegraph_static" for configuration ""
 set_property(TARGET libhandlegraph::handlegraph_static APPEND PROPERTY IMPORTED_CONFIGURATIONS NOCONFIG)
@@ -22,8 +22,8 @@ set_target_properties(libhandlegraph::handlegraph_static PROPERTIES
   IMPORTED_LOCATION_NOCONFIG "${_IMPORT_PREFIX}/lib/libhandlegraph.a"
   )
 
-list(APPEND _cmake_import_check_targets libhandlegraph::handlegraph_static )
-list(APPEND _cmake_import_check_files_for_libhandlegraph::handlegraph_static "${_IMPORT_PREFIX}/lib/libhandlegraph.a" )
+list(APPEND _IMPORT_CHECK_TARGETS libhandlegraph::handlegraph_static )
+list(APPEND _IMPORT_CHECK_FILES_FOR_libhandlegraph::handlegraph_static "${_IMPORT_PREFIX}/lib/libhandlegraph.a" )
 
 # Commands beyond this point should not need to know the version.
 set(CMAKE_IMPORT_FILE_VERSION)

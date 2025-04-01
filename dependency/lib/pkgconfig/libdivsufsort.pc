@@ -1,7 +1,7 @@
-prefix=/scratch/xsong/project/gbz-tool/dependency
+prefix=/mnt/project/gbz-tool/dependency
 exec_prefix=${prefix}
-libdir=/scratch/xsong/project/gbz-tool/dependency/lib
-includedir=/scratch/xsong/project/gbz-tool/dependency/include
+libdir=/mnt/project/gbz-tool/dependency/lib
+includedir=/mnt/project/gbz-tool/dependency/include
 
 Name: libdivsufsort
 Description: A lightweight suffix sorting library

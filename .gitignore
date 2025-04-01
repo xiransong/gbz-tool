@@ -12,7 +12,7 @@ build/
 gbztool
 
 # Dependency folder (uncomment if you don't want to commit libraries)
-#dependency/
+dependency/
 
 # Miscellaneous
 *.log

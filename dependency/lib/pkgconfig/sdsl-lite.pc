@@ -1,4 +1,4 @@
-prefix=/scratch/xsong/project/gbz-tool/dependency
+prefix=/mnt/project/gbz-tool/dependency
 exec_prefix=${prefix}
 libdir=${prefix}/lib
 includedir=${prefix}/include
