@@ -6,6 +6,7 @@ void print_usage(const char* prog_name) {
     std::cerr << "Commands:" << std::endl;
     std::cerr << "  info <input.gbz>              Display information about a GBZ file" << std::endl;
     std::cerr << "  convert <input.gfa> <output.gbz> Convert GFA file to GBZ format" << std::endl;
+    std::cerr << "  find <input.gbz> <node_id>    Find node sequence for given node ID" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
@@ -21,6 +22,15 @@ int main(int argc, char* argv[]) {
         tool.process_gbz(argv[2]);
     } else if (command == "convert" && argc == 4) {
         tool.convert_gfa_to_gbz(argv[2], argv[3]);
+    } else if (command == "find" && argc == 4) {
+        try {
+            gbwt::node_type node_id = std::stoul(argv[3]);
+            std::string result = tool.find_node_info(argv[2], node_id);
+            std::cout << result << std::endl;
+        } catch (const std::exception& e) {
+            std::cerr << "Error: Invalid node ID: " << argv[3] << std::endl;
+            return 1;
+        }
     } else {
         print_usage(argv[0]);
         return 1;
