@@ -7,6 +7,7 @@ void print_usage(const char* prog_name) {
     std::cerr << "  info <input.gbz>              Display information about a GBZ file" << std::endl;
     std::cerr << "  convert <input.gfa> <output.gbz> Convert GFA file to GBZ format" << std::endl;
     std::cerr << "  find <input.gbz> <node_id>    Find node sequence for given node ID" << std::endl;
+    std::cerr << "  find-inter <input.gbz>        Interactive mode to find node sequences" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
@@ -31,6 +32,8 @@ int main(int argc, char* argv[]) {
             std::cerr << "Error: Invalid node ID: " << argv[3] << std::endl;
             return 1;
         }
+    } else if (command == "find-inter" && argc == 3) {
+        tool.find_interactive(argv[2]);
     } else {
         print_usage(argv[0]);
         return 1;

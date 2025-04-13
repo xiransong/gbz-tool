@@ -19,8 +19,15 @@ public:
     // Find node information (sequence) given a node ID
     std::string find_node_info(const std::string& gbz_file, gbwt::node_type node_id);
     
+    // Interactive node finding mode
+    void find_interactive(const std::string& gbz_file);
+
 private:
-    gbwtgraph::GBZ* gbz_graph;
+    // Load GBZ file into the member variable
+    bool load_gbz(const std::string& filename);
+    
+    gbwtgraph::GBZ* gbz_graph; // For conversion operations
+    gbwtgraph::GBZ gbz;        // Persistent GBZ for interactive mode
 };
 
 #endif
