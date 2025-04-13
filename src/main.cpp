@@ -8,6 +8,7 @@ void print_usage(const char* prog_name) {
     std::cerr << "  convert <input.gfa> <output.gbz> Convert GFA file to GBZ format" << std::endl;
     std::cerr << "  find <input.gbz> <node_id>    Find node sequence for given node ID" << std::endl;
     std::cerr << "  find-inter <input.gbz>        Interactive mode to find node sequences" << std::endl;
+    std::cerr << "  find-batch <input.gbz> <node_ids.txt> <node_info.json> Batch process node IDs" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
@@ -34,6 +35,8 @@ int main(int argc, char* argv[]) {
         }
     } else if (command == "find-inter" && argc == 3) {
         tool.find_interactive(argv[2]);
+    } else if (command == "find-batch" && argc == 5) {
+        tool.find_batch(argv[2], argv[3], argv[4]);
     } else {
         print_usage(argv[0]);
         return 1;

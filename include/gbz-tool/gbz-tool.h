@@ -21,13 +21,16 @@ public:
     
     // Interactive node finding mode
     void find_interactive(const std::string& gbz_file);
+    
+    // Batch node finding mode
+    void find_batch(const std::string& gbz_file, const std::string& node_ids_file, const std::string& output_json);
 
 private:
     // Load GBZ file into the member variable
     bool load_gbz(const std::string& filename);
     
     gbwtgraph::GBZ* gbz_graph; // For conversion operations
-    gbwtgraph::GBZ gbz;        // Persistent GBZ for interactive mode
+    gbwtgraph::GBZ gbz;        // Persistent GBZ for interactive and batch modes
 };
 
 #endif

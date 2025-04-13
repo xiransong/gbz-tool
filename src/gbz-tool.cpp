@@ -1,7 +1,9 @@
 #include "gbz-tool.h"
 #include <gbwtgraph/utils.h>
 #include <iostream>
+#include <fstream>
 #include <string>
+#include <vector>
 
 GBZTool::GBZTool() : gbz_graph(nullptr) {}
 
@@ -137,4 +139,87 @@ void GBZTool::find_interactive(const std::string& gbz_file) {
             std::cout << "Error: Invalid node ID: " << input << std::endl;
         }
     }
+}
+
+void GBZTool::find_batch(const std::string& gbz_file, const std::string& node_ids_file, const std::string& output_json) {
+    // Load GBZ file
+    if (!load_gbz(gbz_file)) {
+        std::cerr << "Failed to load GBZ file. Exiting batch mode." << std::endl;
+        return;
+    }
+
+    // Read node IDs from file
+    std::ifstream ids_in(node_ids_file);
+    if (!ids_in.is_open()) {
+        std::cerr << "Error: Could not open node IDs file: " << node_ids_file << std::endl;
+        return;
+    }
+
+    std::vector<gbwt::node_type> node_ids;
+    std::string line;
+    while (std::getline(ids_in, line)) {
+        try {
+            // Trim whitespace
+            line.erase(0, line.find_first_not_of(" \t\r\n"));
+            line.erase(line.find_last_not_of(" \t\r\n") + 1);
+            if (line.empty()) continue; // Skip empty lines
+            gbwt::node_type node_id = std::stoul(line);
+            node_ids.push_back(node_id);
+        } catch (const std::exception& e) {
+            std::cerr << "Warning: Invalid node ID in file: " << line << ". Skipping." << std::endl;
+        }
+    }
+    ids_in.close();
+
+    if (node_ids.empty()) {
+        std::cerr << "Error: No valid node IDs found in " << node_ids_file << std::endl;
+        return;
+    }
+
+    // Query node information
+    std::vector<std::pair<gbwt::node_type, std::string>> results;
+    const gbwtgraph::GBWTGraph& graph = gbz.graph;
+    for (gbwt::node_type node_id : node_ids) {
+        std::string result;
+        if (!graph.has_node(node_id)) {
+            result = "Error: Node " + std::to_string(node_id) + " does not exist.";
+        } else {
+            gbwtgraph::handle_t handle = graph.get_handle(node_id, false);
+            std::string sequence = graph.get_sequence(handle);
+            if (sequence.empty()) {
+                result = "Error: Node " + std::to_string(node_id) + " has no sequence.";
+            } else {
+                result = sequence;
+            }
+        }
+        results.emplace_back(node_id, result);
+    }
+
+    // Write JSON output
+    std::ofstream out_json(output_json);
+    if (!out_json.is_open()) {
+        std::cerr << "Error: Could not open output JSON file: " << output_json << std::endl;
+        return;
+    }
+
+    out_json << "{\n";
+    for (size_t i = 0; i < results.size(); ++i) {
+        const auto& [node_id, info] = results[i];
+        // Escape quotes in info string
+        std::string escaped_info = info;
+        size_t pos = 0;
+        while ((pos = escaped_info.find('"', pos)) != std::string::npos) {
+            escaped_info.replace(pos, 1, "\\\"");
+            pos += 2;
+        }
+        out_json << "  \"" << node_id << "\": \"" << escaped_info << "\"";
+        if (i < results.size() - 1) {
+            out_json << ",";
+        }
+        out_json << "\n";
+    }
+    out_json << "}\n";
+    out_json.close();
+
+    std::cout << "Batch processing completed. Output written to " << output_json << std::endl;
 }
