@@ -2,13 +2,13 @@
 #include <iostream>
 
 void print_usage(const char* prog_name) {
-    std::cerr << "Usage: " << prog_name << " <command> [arguments]" << std::endl;
-    std::cerr << "Commands:" << std::endl;
-    std::cerr << "  info <input.gbz>              Display information about a GBZ file" << std::endl;
-    std::cerr << "  convert <input.gfa> <output.gbz> Convert GFA file to GBZ format" << std::endl;
-    std::cerr << "  find <input.gbz> <node_id>    Find node sequence for given node ID" << std::endl;
-    std::cerr << "  find-inter <input.gbz>        Interactive mode to find node sequences" << std::endl;
-    std::cerr << "  find-batch <input.gbz> <node_ids.txt> <node_info.json> Batch process node IDs" << std::endl;
+    std::cout << "Usage: " << prog_name << " <command> [arguments]" << std::endl;
+    std::cout << "Commands:" << std::endl;
+    std::cout << "  info <input.gbz>                    Display information about a GBZ file" << std::endl;
+    std::cout << "  convert <input.gfa> <output.gbz>    Convert GFA file to GBZ format" << std::endl;
+    std::cout << "  find <input.gbz> <node_id>          Find node sequence for given node ID" << std::endl;
+    std::cout << "  find-inter <input.gbz>              Interactive mode to find node sequences" << std::endl;
+    std::cout << "  find-batch <input.gbz> <node_ids.txt> <node_info.json>  Batch process node IDs" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
