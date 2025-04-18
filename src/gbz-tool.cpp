@@ -1,9 +1,13 @@
 #include "gbz-tool.h"
 #include <gbwtgraph/utils.h>
+#include <nlohmann/json.hpp> // Assuming use of nlohmann/json library
+using json = nlohmann::json;
+
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 GBZTool::GBZTool() : gbz_graph(nullptr) {}
 
@@ -126,15 +130,10 @@ void GBZTool::find_interactive(const std::string& gbz_file) {
                 continue;
             }
 
-            gbwtgraph::handle_t handle = graph.get_handle(node_id, false);
-            std::string sequence = graph.get_sequence(handle);
-
-            if (sequence.empty()) {
-                std::cout << "Error: Node " << node_id << " has no sequence." << std::endl;
-                continue;
-            }
-
-            std::cout << "Node " << node_id << ": [" << sequence << "]" << std::endl;
+            // get the string that contains node info in json format
+            std::string s_node_info = this->_get_node_info(gbz.index, gbz.graph, node_id);
+            std::cout << s_node_info << std::endl;
+            
         } catch (const std::exception& e) {
             std::cout << "Error: Invalid node ID: " << input << std::endl;
         }
@@ -222,4 +221,121 @@ void GBZTool::find_batch(const std::string& gbz_file, const std::string& node_id
     out_json.close();
 
     std::cout << "Batch processing completed. Output written to " << output_json << std::endl;
+}
+
+
+std::string GBZTool::_get_node_info(const gbwt::GBWT& gbwt_index, 
+                            const gbwtgraph::GBWTGraph& graph, 
+                            gbwt::node_type node_id) {
+    json node_info;
+    node_info["node_id"] = node_id;
+
+    // Get node handle
+    gbwtgraph::handle_t node_handle = graph.get_handle(node_id, false);
+
+    // Get sequence
+    std::string sequence = graph.get_sequence(node_handle);
+    node_info["sequence"] = sequence;
+    node_info["sequence_length"] = sequence.length();
+
+    // Get in-edges
+    json in_edges = json::array();
+    graph.follow_edges(node_handle, true, [&](gbwtgraph::handle_t prev) {
+        json edge;
+        edge["from"] = graph.get_id(prev);
+        edge["from_orientation"] = graph.get_is_reverse(prev) ? "-" : "+";
+        edge["to"] = node_id;
+        edge["to_orientation"] = "+";
+        in_edges.push_back(edge);
+    });
+    node_info["in_edges"] = in_edges;
+
+    // Get out-edges
+    json out_edges = json::array();
+    graph.follow_edges(node_handle, false, [&](gbwtgraph::handle_t next) {
+        json edge;
+        edge["from"] = node_id;
+        edge["from_orientation"] = "+";
+        edge["to"] = graph.get_id(next);
+        edge["to_orientation"] = graph.get_is_reverse(next) ? "-" : "+";
+        out_edges.push_back(edge);
+    });
+    node_info["out_edges"] = out_edges;
+
+    // Find haplotypes containing the node
+    json haplotypes = json::array();
+    gbwt::node_type node = gbwt::Node::encode(node_id, false);
+    gbwt::SearchState search_state = gbwt_index.find(node);
+    std::vector<gbwt::size_type> haplotype_ids = gbwt_index.locate(search_state);
+
+    if (!haplotype_ids.empty()) {
+        // Get reference samples for path sense determination
+        auto reference_samples = gbwtgraph::parse_reference_samples_tag(gbwt_index);
+
+        // For each haplotype containing this node
+        for (size_t i = 0; i < haplotype_ids.size(); i++) {
+            json haplotype;
+            auto haplotype_id = haplotype_ids[i];
+            haplotype["haplotype_number"] = i + 1;
+            haplotype["haplotype_id"] = haplotype_id;
+
+            // Get path information
+            gbwt::size_type path_id = gbwt::Path::id(haplotype_id);
+
+            if (gbwt_index.hasMetadata()) {
+                // Get path metadata
+                gbwtgraph::PathSense sense = gbwtgraph::get_path_sense(gbwt_index, path_id, reference_samples);
+                haplotype["chromosome"] = gbwtgraph::get_path_sample_name(gbwt_index, path_id, sense);
+                haplotype["region"] = gbwtgraph::get_path_locus_name(gbwt_index, path_id, sense);
+                haplotype["haplotype_number"] = gbwtgraph::get_path_haplotype(gbwt_index, path_id, sense);
+                
+                // Set path type
+                switch(sense) {
+                    case gbwtgraph::PathSense::REFERENCE:
+                        haplotype["path_type"] = "Reference";
+                        break;
+                    case gbwtgraph::PathSense::HAPLOTYPE:
+                        haplotype["path_type"] = "Haplotype";
+                        break;
+                    case gbwtgraph::PathSense::GENERIC:
+                        haplotype["path_type"] = "Generic";
+                        break;
+                    default:
+                        haplotype["path_type"] = "Unknown";
+                }
+
+                // Get thread information
+                gbwt::vector_type thread = gbwt_index.extract(haplotype_id);
+                haplotype["thread_length"] = thread.size();
+
+                // Get thread context
+                json thread_context = json::array();
+                bool found_node = false;
+                for (size_t j = 0; j < thread.size(); j++) {
+                    if (gbwt::Node::id(thread[j]) == node_id) {
+                        found_node = true;
+                        // Collect 2 nodes before and after if available
+                        for (int k = std::max(0, (int)j - 2); k <= std::min((int)thread.size() - 1, (int)j + 2); k++) {
+                            json node;
+                            node["id"] = gbwt::Node::id(thread[k]);
+                            node["is_target"] = (k == (int)j);
+                            thread_context.push_back(node);
+                        }
+                        break;
+                    }
+                }
+                haplotype["thread_context"] = found_node ? thread_context : "Node not found in thread";
+            } else {
+                haplotype["metadata"] = "No metadata available";
+            }
+            haplotypes.push_back(haplotype);
+        }
+    }
+    node_info["haplotypes"] = haplotypes;
+    node_info["haplotype_count"] = haplotypes.size();
+
+    // Construct final string
+    std::string s_node_info = std::to_string(node_id) + ": " + node_info.dump(2);
+    
+    return s_node_info;
 }

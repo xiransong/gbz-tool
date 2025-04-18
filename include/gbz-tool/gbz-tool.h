@@ -25,6 +25,8 @@ public:
     // Batch node finding mode
     void find_batch(const std::string& gbz_file, const std::string& node_ids_file, const std::string& output_json);
 
+    std::string _get_node_info(const gbwt::GBWT& gbwt_index, const gbwtgraph::GBWTGraph& graph, gbwt::node_type node_id);
+
 private:
     // Load GBZ file into the member variable
     bool load_gbz(const std::string& filename);
