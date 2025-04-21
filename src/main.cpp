@@ -25,14 +25,8 @@ int main(int argc, char* argv[]) {
     } else if (command == "convert" && argc == 4) {
         tool.convert_gfa_to_gbz(argv[2], argv[3]);
     } else if (command == "find" && argc == 4) {
-        try {
-            gbwt::node_type node_id = std::stoul(argv[3]);
-            std::string result = tool.find_node_info(argv[2], node_id);
-            std::cout << result << std::endl;
-        } catch (const std::exception& e) {
-            std::cerr << "Error: Invalid node ID: " << argv[3] << std::endl;
-            return 1;
-        }
+        gbwt::node_type node_id = std::stoul(argv[3]);
+        tool.find_node_info(argv[2], node_id);
     } else if (command == "find-inter" && argc == 3) {
         tool.find_interactive(argv[2]);
     } else if (command == "find-batch" && argc == 5) {
